@@ -2,30 +2,50 @@ const express = require("express");
 const fs = require("fs");
 const app = express();
 const port = 3000;
-const dir = __dirname + "\\views\\video";
-const files = fs.readdirSync(dir);
+// const dir = __dirname + "\\views\\video";
+// const files = fs.readdirSync(dir);
 
-app.set("view engine", "ejs");
+// app.set("view engine", "ejs");
 
-app.get("/", (req, res) => {
-    const range = req.headers.range;
-    if(!range){
-        res.status(400).send("Requires Range headers");
+app.get("/", function (req, res) {
+  res.sendFile(__dirname + "/test.html");
+});
+
+app.get("/video", (req, res) => {
+  const path = "Test_video.mp4";
+  fs.stat(path, (err, stats) => {
+    if (err != null && err.code == "ENOENT") {
+      res.sendFile(404);
     }
-    const videoPath = null;
-    const videoSize = fs.statSync(videoPath).size;
-    const CHUNK_SIZE = 10 * 6
-    const start = Number(range.replace(/\D/g, ""))
-    const end = Math.min(start + CHUNK_SIZE, videoSize - 1)
+    const fileSize = stats.size;
+    const range = req.headers.range;
+    if (range) {
+      const parts = range.replace(/bytes=/, "").split("-");
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
 
-    const contentLength = end - start + 1
-    const header = {
-        "Content-Length": `bytes ${start}-${end}/${videoSize}`,
+      const chunksize = end - start + 1;
+      const file = fs.createReadStream(path, { start, end });
+      const head = {
+        "Content-Range": `bytes ${start}-${end}/${fileSize}`,
         "Accept-Ranges": "bytes",
-        "Content-Type": contentLength,
-        "content-Type": "video/mp4"
+        "Content-Length": chunksize,
+        "Content-Type": "video/mp4",
+      };
+
+      res.writeHead(206, head);
+      file.pipe(res);
     } 
-    res.writeHead(206)
+    else {
+      const head = {
+        "Content-Length": fileSize,
+        "Content-Type": "video/mp4",
+      };
+
+      res.writeHead(200, head);
+      fs.createReadStream(path).pipe(res);
+    }
+  });
 });
 
 app.get("/playVideo", (req, res) => {
@@ -34,4 +54,6 @@ app.get("/playVideo", (req, res) => {
   res.render("playVideo", { src: src });
 });
 
-app.listen(port, () => console.log(`listening at port http:localhost:${port}`));
+app.listen(port, '0.0.0.0', () => {
+    console.log(`listening at port http:localhost:${port}`)
+});
