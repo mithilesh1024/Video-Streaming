@@ -3,18 +3,27 @@ from fastapi import FastAPI
 from fastapi import Request, Response
 from fastapi import Header
 from fastapi.templating import Jinja2Templates
+import os
 
 
 app = FastAPI()
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory="template")
 CHUNK_SIZE = 1024*1024
 video_path = Path("video.mp4")
+path = "C:\\Users\\Admin\\Videos\\Captures"
+fileslist = []
+for root, dirs, files in os.walk(path):
+	for file in files:
+		fileslist.append(os.path.join(root,file))
+# print(fileslist)
 
+# @app.get("/")
+# async def read_root(request: Request):
+#     return templates.TemplateResponse("index.htm", context={"request": request})
 
 @app.get("/")
-async def read_root(request: Request):
-    return "Working"
-
+def home(request: Request):
+    return templates.TemplateResponse("home.html", context={"request": request})
 
 @app.get("/video")
 async def video_endpoint(range: str = Header(None)):
