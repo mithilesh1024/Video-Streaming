@@ -7,25 +7,22 @@
     <title>Home Page</title>
 </head>
 <body>
-    {%- for file in fileslist %}
     <li>
-        <button type="button" id="bttn" class="{{file}}">
-            {{ file}}
+    {%- for file in fileslist %}
+        <button type="button" id="{{file}}" class="bttn">
+            {{ file[31:-4]}}
         </button>
-    </li>
     {% endfor %}
-
+    </li>
     <script
     src="https://code.jquery.com/jquery-3.6.0.js"
     integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk="
     crossorigin="anonymous">
     </script>
     <script>
-        $(document).ready(() => {
-            $("#bttn").click(() => {
-                $('bttn').each(()=>{
-                    var name = $(this).attr('class')
-                })
+        $(document).ready(function() {
+            $(".bttn").click(() => {
+                var name = $(this).attr("id")
                 console.log(name)
             })
         })
